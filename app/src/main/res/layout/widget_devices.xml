@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  一块 2×1 的设备小部件：左右各一格 1×1，每格一台设备。
+
+  ┌───────────────┬───────────────┐
+  │   💧 宿舍A     │   💧 宿舍B     │
+  └───────────────┴───────────────┘
+
+  ── 尺寸怎么定的 ──
+  Android 用 cells = ceil((size + 30) / 70) 从 dp 反推格数（2026-11-07 实测）。
+    2 格宽：110dp → ceil(140/70) = 2 ✓（111dp 就变 3 格，所以 110 是上限）
+    1 格高：40dp  → ceil(70/70)  = 1 ✓（41dp 变 2 格）
+  所以 minWidth=110dp / minHeight=40dp，正好 2×1；
+  里面两个 LinearLayout 各 layout_weight=1，于是各占 55dp —— 即每台设备 1×1。
+
+  ── 为什么每格是上下排（图标在上、名字在下）而不是左右排 ──
+  1×1 只有 55dp 宽。左右排的话：图标 12dp + 间距 + 文字只剩 35dp，
+  9sp 汉字也只能放 3 个，长一点的名字必被截断。
+  上下排把整条 49dp 宽度都留给文字，5 个汉字勉强放得下（9sp ≈ 9dp/字）。
+
+  ── RemoteViews 的限制 ──
+  只能用 LinearLayout / FrameLayout / TextView / ImageView 这些原生控件，
+  不能用 ConstraintLayout、不能自定义 View、不能写 selector。
+  所以状态（正常 / 名字不在 / 无障碍没开）是靠代码 setTextColor + setInt alpha 表达的，
+  见 DeviceWidget.bindCell()。层级是写死的，不要试图重构。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetDevicesRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_widget_devices"
+    android:orientation="horizontal"
+    android:paddingStart="2dp"
+    android:paddingTop="2dp"
+    android:paddingEnd="2dp"
+    android:paddingBottom="2dp">
+
+    <!-- ══════════ 左半格：清单第 1 台 ══════════ -->
+    <LinearLayout
+        android:id="@+id/widgetCellLeft"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/widgetIconLeft"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_widget_drop" />
+
+        <TextView
+            android:id="@+id/widgetNameLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!--
+        中间那条竖线：把 2×1 明确切成两个 1×1。
+
+        这里必须用 FrameLayout 而不是 View —— RemoteViews 只允许白名单里的
+        控件类，`android.view.View` 不在名单里，写了会当场炸：
+          W/AppWidgetHostView: android.view.InflateException: Binary XML file
+          line #76 in ...:layout/widget_devices: Class not allowed to be
+          inflated android.view.View
+        桌面上的表现是「载入窗口小部件时出现问题」。
+        FrameLayout 在白名单里，给它一个背景色就等同于一条线。
+    -->
+    <FrameLayout
+        android:layout_width="1dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center_vertical"
+        android:background="#33FFFFFF" />
+
+
+    <!-- ══════════ 右半格：清单第 2 台 ══════════ -->
+    <LinearLayout
+        android:id="@+id/widgetCellRight"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/widgetIconRight"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_widget_drop" />
+
+        <TextView
+            android:id="@+id/widgetNameRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>

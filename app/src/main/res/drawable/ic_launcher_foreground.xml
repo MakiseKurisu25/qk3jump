@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 一个取景框加一道闪电：取景框代表「找设备」，闪电代表「一下就到位」。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 左上角 -->
+    <path
+        android:fillColor="#8FD8FF"
+        android:pathData="M32,34h10v4h-6v6h-4z" />
+    <!-- 右上角 -->
+    <path
+        android:fillColor="#8FD8FF"
+        android:pathData="M66,34h10v10h-4v-6h-6z" />
+    <!-- 左下角 -->
+    <path
+        android:fillColor="#8FD8FF"
+        android:pathData="M32,64h4v6h6v4h-10z" />
+    <!-- 右下角 -->
+    <path
+        android:fillColor="#8FD8FF"
+        android:pathData="M72,64h4v10h-10v-4h6z" />
+
+    <!-- 中间闪电 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M57,42l-14,18h10l-3,14l15,-20h-10z" />
+</vector>

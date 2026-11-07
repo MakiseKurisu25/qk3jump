@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小部件左侧那滴水。
+
+  2×1 里它占 28dp，比 1×1 版本（26dp）略大一点 —— 横向放宽之后
+  图标可以有呼吸空间，不会和右边的文字挤在一起。
+  颜色 #8FD8FF 是全天候可见的浅青，在浅色和深色壁纸上都不发灰。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="#8FD8FF"
+        android:pathData="M12,2.2 C12,2.2 5.2,10 5.2,14.2 A6.8,6.8 0 0,0 18.8,14.2 C18.8,10 12,2.2 12,2.2 Z" />
+
+    <path
+        android:fillColor="#CCFFFFFF"
+        android:pathData="M9.6,13.6 A1.6,2.2 0 0,0 9.6,17.4 A1.7,2.4 0 0,1 9.6,13.6 Z" />
+
+</vector>

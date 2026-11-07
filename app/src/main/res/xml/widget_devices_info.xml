@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  2×1 设备小部件的声明：一块板，里面并排两台设备，每台 1×1。
+
+  尺寸换算见 res/layout/widget_devices.xml 顶部注释：
+  110dp × 40dp = 2 格宽 × 1 格高。
+
+  updatePeriodMillis=0：不靠系统定时刷新（系统最快也只给 30 分钟一次，没意义）。
+  真正需要重画的时候是「目标簿被改名/删除」，那种时候由 DeviceWidget.refreshAll 主动推。
+
+  刻意不写 android:configure —— 没有配置页。
+  左右两格取设备清单的前两台（左=第 1 台、右=第 2 台），清单变了会自动重画。
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_devices_desc"
+    android:initialLayout="@layout/widget_devices"
+    android:minHeight="40dp"
+    android:minWidth="110dp"
+    android:previewLayout="@layout/widget_devices"
+    android:targetCellHeight="1"
+    android:targetCellWidth="2"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

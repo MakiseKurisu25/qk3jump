@@ -1,0 +1,21 @@
+# 构建产物
+build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# 本地机器相关（每台机器不同，绝不能提交）
+local.properties
+.gradle-home/
+
+# IDE
+.idea/
+*.iml
+*.hprof
+.DS_Store
+
+# 调试期产物
+*.xml.bak
+captures/

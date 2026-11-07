@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    胖乖直达（V3）。
+
+    红线写在这里，改动前先读一遍：
+      1. 只做「入口替换 + 界面辅助点击」。点的是胖乖自己界面上真实存在的控件
+         （首页的「饮水」分类、设备列表里的「立即使用」、确认页的「领优惠券使用」、
+         会员页的「放弃优惠 原价使用」），等价于用户用手指点。
+      2. 不抓包、不逆向私有接口、不构造订单、不模拟支付、不碰账号与登录态。
+      3. 自动解锁默认关闭，打开要过一次显式风险确认。关着时到设备确认页就撒手。
+      4. 永远不点会员页的「开通并领取优惠」（会开通 9.7 元/月自动续费）。
+      5. 不出水。自动解锁最多走到「解锁成功」，出水必须按饮水机机身上的实体键。
+      6. 不走支付宝小程序：这条路不需要支付宝登录。
+      7. 只存设备名字，不存 URL / token / 订单号。
+
+    权限只要一条：
+      WRITE_SECURE_SETTINGS —— 只用于「掉授权后自己写回无障碍开关」，
+                                装包时永不授予，不授予时一切照旧只是不能自愈。
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!--
+        Android 11 起的包可见性：不声明就查不到胖乖的安装状态与入口，
+        resolveActivity 会恒为 null，导致误判成「没装」。
+    -->
+    <queries>
+        <package android:name="com.qiekj.user" />
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Qk3Jump">
+
+        <!--
+            唯一的启动页。它就是目标设备列表 —— 打开即见。
+        -->
+        <activity
+            android:name=".JumpActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.Qk3Jump">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_title"
+            android:parentActivityName=".JumpActivity"
+            android:theme="@style/Theme.Qk3Jump" />
+
+        <!--
+            无障碍服务。exported 必须是 false，并且必须带 BIND_ACCESSIBILITY_SERVICE
+            这个系统级权限 —— 只有系统能绑，任何第三方都绑不上。
+        -->
+        <service
+            android:name=".ScanTapService"
+            android:exported="false"
+            android:label="@string/a11y_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <!--
+            桌面上唯一一块 2×1 小部件：左边是清单第 1 台、右边是第 2 台，
+            每格 1×1，各点各的。
+
+            exported 必须是 true：启动器是别的进程，它要来问「这个 receiver 收不收
+            APPWIDGET_UPDATE」，不收就永远画不出来。
+
+            刻意不写 android:configure —— 见 DeviceWidget.kt 顶部注释：
+            这台机器只能手动拖，没有配置页时拖出来就是成品，少一次点击。
+            两台设备编译期定死，不给用户在拖拽时选。
+        -->
+        <receiver
+            android:name=".DeviceWidget"
+            android:exported="true"
+            android:label="@string/widget_devices_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_devices_info" />
+        </receiver>
+
+    </application>
+
+</manifest>

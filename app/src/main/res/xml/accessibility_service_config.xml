@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    无障碍服务配置。
+
+    几个刻意的选择：
+      · canPerformGestures="true"   —— 设备列表将来若改成 WebView / Compose 渲染，
+                                      控件本身不可点击，只能靠坐标手势。现在是
+                                      ACTION_CLICK 就能点，但留着这一位不吃亏。
+      · 不写 packageNames           —— 把过滤放在代码里做。写在 XML 里的话，
+                                      日志里看不出「为什么这个事件被忽略了」；
+                                      放代码里就能逐条打出来。
+      · settingsActivity            —— 系统设置里点「设置」会回到本应用的设置页。
+      · notificationTimeout="100"   —— 事件合并窗口。胖乖首页控件多，太大会丢事件。
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeViewScrolled"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagReportViewIds|flagIncludeNotImportantViews"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/a11y_desc"
+    android:notificationTimeout="100"
+    android:settingsActivity="com.local.qk3jump.SettingsActivity" />

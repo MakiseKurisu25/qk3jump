@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  2×1 设备小部件（左右两格）的底板。
+
+  和 App 内其它卡片同一套「液态玻璃」语言：315° 渐变 + 大圆角 + 1dp 高光描边。
+  但这里有个和小部件场景绑定的额外要求：**桌面上背景是用户的壁纸，不可控**。
+  所以不能用纯透明 —— 遇到浅色壁纸时玻璃会整块消失，方块看起来像没加载出来。
+  这里把最亮的一档压在 #33FFFFFF（约 20% 白），保证在任何壁纸上都能看出边界。
+
+  圆角取 16dp（比之前单块的 18dp 略小）：一块板里塞了两格，
+  圆角太大时中间那条竖线的位置会显得局促。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:centerColor="#1FFFFFFF"
+        android:endColor="#14FFFFFF"
+        android:startColor="#3DFFFFFF" />
+    <corners android:radius="16dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#4DFFFFFF" />
+</shape>

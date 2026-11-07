@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">胖乖直达</string>
+
+    <!-- 启动页 -->
+    <string name="jump_title">胖乖直达</string>
+    <string name="targets_empty">还没有设备。点下面的「加一台」写下设备名。</string>
+    <string name="btn_add_target">加一台</string>
+    <string name="btn_clear_targets">清空全部</string>
+
+    <!-- 状态行 -->
+    <string name="status_ready">点一台机器，直接进它的设备页（共 %1$d 台）</string>
+    <string name="status_no_a11y">无障碍服务没开，点了也到不了。点这一行去打开它</string>
+    <string name="status_ready_none">点一台机器，直接进它的设备页</string>
+    <string name="status_no_qk">这台手机没装胖乖生活 App</string>
+    <string name="status_dry">调试模式：本应带你去「%1$s」，但不会真的点</string>
+    <string name="status_going">正在带你去「%1$s」…</string>
+
+    <!-- 行菜单 -->
+    <string name="target_menu_title">这台设备</string>
+    <string name="target_more">⋯</string>
+    <string name="target_rename">改个名字</string>
+    <string name="target_delete">删除这一台</string>
+    <string name="target_add">加一台设备</string>
+    <string name="target_clear">清空全部</string>
+    <string name="target_clear_confirm">会删掉全部 %1$d 台。只删名字，不碰任何账号数据。</string>
+    <string name="dialog_target_hint">照胖乖 App 里显示的名字写，比如 北3栋201</string>
+
+    <!-- Toast -->
+    <string name="toast_blank_name">名字不能是空的</string>
+    <string name="toast_no_entry">找不到胖乖生活的入口，可能被禁用了</string>
+    <string name="toast_launch_failed">拉起胖乖失败，看 logcat 里的 Qk3Jump</string>
+    <string name="toast_a11y_settings_failed">打不开系统设置，请手动到「设置 → 无障碍」</string>
+
+    <!-- 设置页 -->
+    <string name="settings_title">设置</string>
+    <string name="set_section_behavior">行为</string>
+    <string name="set_dry_run">调试模式（只看不动）</string>
+    <string name="set_dry_run_note">只记录会点哪一行、会拉起什么，不真的点。开着它验证匹配是否正确，不会开出任何水。</string>
+    <string name="set_step_wait">每一步之间等 %1$d 毫秒</string>
+    <string name="set_step_wait_value">每一步之间等 %1$d 毫秒</string>
+    <string name="set_step_wait_note">机器慢、页面渲染慢的时候往右调。太小会点空，太大会觉得卡。</string>
+    <string name="set_window">待命窗口 %1$d 秒</string>
+    <string name="set_window_value">待命窗口 %1$d 秒</string>
+    <string name="set_window_note">从拉起胖乖开始，多久之内允许自动点击。超过就撒手，不会在你手动用 App 时突然点一下。</string>
+
+    <string name="set_auto_unlock">自动解锁（会真的开始计费）</string>
+    <string name="set_auto_unlock_note">默认关闭。打开后会在设备确认页替你点下「领优惠券使用」，遇到会员营销页点「放弃优惠 原价使用」，直到出现「解锁成功」为止。到了那一步设备就已经解锁并开始计费 —— 但出水还要按饮水机机身上的「出水」键，本应用不会、也没有能力替你出水。</string>
+    <string name="set_unlock_delay">解锁等待 %1$d 秒</string>
+    <string name="set_unlock_delay_note">确认页渲染慢的时候往右调。太早点下去会静默无效，太大会觉得卡。</string>
+    <string name="set_auto_unlock_confirm">打开后，本应用会在设备确认页替你点下「领优惠券使用」。\n\n遇到会员营销页时，它会点「放弃优惠 原价使用」——不会点「开通并领取优惠」，所以不会给你开通自动续费。\n\n点完就到了「解锁成功」，设备从这一刻起开始计费。出水仍然要按饮水机机身上的「出水」键，本应用不会替你出水，也不会替你结束。\n\n只在你自己的机器上用。</string>
+    <string name="set_auto_unlock_ok">我明白，打开</string>
+
+    <string name="set_section_a11y">无障碍</string>
+    <string name="set_open_a11y">打开系统的无障碍设置</string>
+    <string name="set_heal_a11y">尝试自动恢复授权</string>
+    <string name="set_a11y_note">从最近任务划掉本应用或强行停止，系统会清空无障碍授权。拿到 WRITE_SECURE_SETTINGS 后本应用会自己写回来，该权限只能 adb 给：\nadb shell pm grant com.local.qk3jump android.permission.WRITE_SECURE_SETTINGS</string>
+
+    <string name="a11y_heal_ok">已写回，系统会在数秒内绑上</string>
+    <string name="a11y_heal_failed">两种写入顺序都没生效，系统拦了。请手动去设置里开一次</string>
+    <string name="a11y_heal_no_perm">没有 WRITE_SECURE_SETTINGS，无法自己写回</string>
+
+    <string name="set_section_about">关于</string>
+    <string name="set_about">本应用只做一件事：把你领到胖乖的设备确认页。它点的是胖乖界面上真实的「饮水」和设备名旁的「立即使用」，不会点确认页上那个开始出水的按钮，也不碰账号、订单与计费。</string>
+    <string name="set_last">上次结果：%1$s</string>
+    <string name="set_last_none">（还没有跑过）</string>
+
+    <string name="set_reset">恢复默认</string>
+    <string name="set_reset_confirm">调试模式关掉，步进 1200 毫秒，待命窗口 25 秒。设备清单不动。</string>
+
+    <!-- 无障碍服务在系统设置里的展示 -->
+    <string name="a11y_label">胖乖直达：自动点「饮水」与设备</string>
+    <string name="a11y_desc">在胖乖生活 App 里替你点三下：首页的「饮水」、设备列表里目标那台的「立即使用」。只在你自己按过启动之后、25 秒窗口内生效，且只点你设置的那一台。不会点任何开始出水或支付的按钮。</string>
+
+    <!-- 2×1 桌面小部件：一块板，左右各一格 1×1，每格一台设备 -->
+    <string name="widget_devices_label">两台饮水机</string>
+    <string name="widget_devices_desc">左边是清单第 1 台、右边是第 2 台，点哪半边就去哪台</string>
+    <string name="widget_cell_desc">直达「%1$s」</string>
+    <!-- 设备被改名/删掉之后，那一格显示这个代替名字 -->
+    <string name="widget_name_gone">不在清单</string>
+    <!-- 清单里还没凑够两台时，空着的那一格 -->
+    <string name="widget_cell_empty">加一台</string>
+    <string name="widget_cell_empty_desc">去添加第二台设备</string>
+    <string name="toast_widget_target_gone">小部件要去的「%1$s」已经不在设备清单里了</string>
+
+</resources>

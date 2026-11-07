@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="96dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="36dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/settings_title"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp" />
+
+        <!-- 行为 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="10dp"
+            android:letterSpacing="0.06"
+            android:text="@string/set_section_behavior"
+            android:textColor="#8FD8FF"
+            android:textSize="11sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="18dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/cbDryRun"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/set_dry_run"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/set_dry_run_note"
+                android:textColor="#80FFFFFF"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvStepWait"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/sbStepWait"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/set_step_wait_note"
+                android:textColor="#80FFFFFF"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvWindow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/sbWindow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/set_window_note"
+                android:textColor="#80FFFFFF"
+                android:textSize="11sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="20dp"
+                android:background="#1AFFFFFF" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/cbAutoUnlock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/set_auto_unlock"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/set_auto_unlock_note"
+                android:textColor="#FFB4A0"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvUnlockDelay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/sbUnlockDelay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/set_unlock_delay_note"
+                android:textColor="#80FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 无障碍 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:layout_marginBottom="10dp"
+            android:letterSpacing="0.06"
+            android:text="@string/set_section_a11y"
+            android:textColor="#8FD8FF"
+            android:textSize="11sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="18dp">
+
+            <TextView
+                android:id="@+id/tvA11yStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnOpenA11y"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_button_outline"
+                android:gravity="center"
+                android:text="@string/set_open_a11y"
+                android:textColor="#E6FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/btnHealA11y"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_button_outline"
+                android:gravity="center"
+                android:text="@string/set_heal_a11y"
+                android:textColor="#E6FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/set_a11y_note"
+                android:textColor="#80FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 关于 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:layout_marginBottom="10dp"
+            android:letterSpacing="0.06"
+            android:text="@string/set_section_about"
+            android:textColor="#8FD8FF"
+            android:textSize="11sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="18dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="4dp"
+                android:text="@string/set_about"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvLast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnReset"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="26dp"
+            android:background="@drawable/bg_button_outline"
+            android:gravity="center"
+            android:text="@string/set_reset"
+            android:textColor="#CCFFFFFF"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+</ScrollView>
