@@ -16,7 +16,7 @@
 | 10 | `app/src/main/java/com/local/qk3jump/Matcher.kt` | 88 |
 | 11 | `app/src/main/java/com/local/qk3jump/JumpWindow.kt` | 117 |
 | 12 | `app/src/main/java/com/local/qk3jump/ScanTapService.kt` | 896 |
-| 13 | `app/src/main/java/com/local/qk3jump/A11yGuard.kt` | 163 |
+| 13 | `app/src/main/java/com/local/qk3jump/A11yGuard.kt` | 211 |
 | 14 | `app/src/main/java/com/local/qk3jump/TargetStore.kt` | 109 |
 | 15 | `app/src/main/java/com/local/qk3jump/JumpActivity.kt` | 354 |
 | 16 | `app/src/main/java/com/local/qk3jump/SettingsActivity.kt` | 217 |
@@ -1711,7 +1711,7 @@ class ScanTapService : AccessibilityService() {
 
 ---
 
-## 13. `app/src/main/java/com/local/qk3jump/A11yGuard.kt`（163 行）
+## 13. `app/src/main/java/com/local/qk3jump/A11yGuard.kt`（211 行）
 
 ```kotlin
 package com.local.qk3jump
@@ -1746,6 +1746,30 @@ object A11yGuard {
     private fun component(context: Context): String =
         ComponentName(context, ScanTapService::class.java).flattenToString()
 
+    /**
+     * 把一条无障碍组件名规整成 `包名/完整类名` 的规范形式。
+     *
+     * 系统里同一条服务可能有两种写法：
+     *   `com.local.qk3jump/.ScanTapService`            ← 简写（相对包名）
+     *   `com.local.qk3jump/com.local.qk3jump.ScanTapService`  ← 全写
+     * 它们指的是同一个服务。早期版本写回时只用字符串拼接、不查重，
+     * 于是在「简短写法已在列表里」的情况下把全写又追加了一遍，实测 logcat：
+     *
+     *   [A11y]   原有服务列表=com.local.qk3jump/.ScanTapService
+     *   [A11y]   写回后=com.local.qk3jump/.ScanTapService:com.local.qk3jump/com.local.qk3jump.ScanTapService
+     *
+     * 同一条服务在系统设置里出现两次，既难看也可能让某些 ROM 的解析出错。
+     * 现在统一先规整再比对 / 写回。
+     */
+    private fun normalizeEntry(entry: String): String {
+        val slash = entry.indexOf('/')
+        if (slash <= 0) return entry
+        val pkg = entry.substring(0, slash)
+        val cls = entry.substring(slash + 1)
+        val full = if (cls.startsWith(".")) pkg + cls else cls
+        return "$pkg/$full"
+    }
+
     fun canWrite(context: Context): Boolean = try {
         context.checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) ==
             PackageManager.PERMISSION_GRANTED
@@ -1769,7 +1793,10 @@ object A11yGuard {
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
             )
             if (!raw.isNullOrBlank()) {
-                return raw.split(':').any { it.equals(mine, ignoreCase = true) }
+                return raw.split(':').any {
+                    it.isNotBlank() &&
+                        normalizeEntry(it).equals(normalizeEntry(mine), ignoreCase = true)
+                }
             }
         }
 
@@ -1810,6 +1837,25 @@ object A11yGuard {
         val mine = component(context)
         val cr = context.contentResolver
         val before = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: ""
+
+        // 先按规范形式判断「是不是其实已经在里面了」—— 简写与全写指同一个服务。
+        val alreadyThere = before.split(':').any {
+            it.isNotBlank() && normalizeEntry(it).equals(normalizeEntry(mine), ignoreCase = true)
+        }
+        if (alreadyThere) {
+            QLog.i(TAG_AREA, "服务已在列表里（写法不同），只补开关，不重复追加：${before.ifBlank { "(空)" }}")
+            writeAll(cr, enabledFirst = true, services = before)
+            if (stillEnabled(cr, mine)) {
+                QLog.i(TAG_AREA, "✓ 自愈成功（顺序 A：先 enabled 后 services）")
+                return true
+            }
+            writeAll(cr, enabledFirst = false, services = before)
+            val ok2 = stillEnabled(cr, mine)
+            if (ok2) QLog.i(TAG_AREA, "✓ 自愈成功（顺序 B：先 services 后 enabled）")
+            else QLog.e(TAG_AREA, "✗ 两种写序都没生效，系统拦截了第三方写入。需要手动去系统设置里打开一次无障碍")
+            return ok2
+        }
+
         val after = if (before.isBlank()) mine else "$before:$mine"
 
         QLog.i(TAG_AREA, "检测到无障碍授权被清空（多半是从最近任务划掉了 App），开始写回")
@@ -1856,7 +1902,9 @@ object A11yGuard {
     private fun stillEnabled(cr: android.content.ContentResolver, mine: String): Boolean {
         val list = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: ""
         val flag = Settings.Secure.getInt(cr, Settings.Secure.ACCESSIBILITY_ENABLED, 0)
-        val inList = list.split(':').any { it.equals(mine, ignoreCase = true) }
+        val inList = list.split(':').any {
+            it.isNotBlank() && normalizeEntry(it).equals(normalizeEntry(mine), ignoreCase = true)
+        }
         val ok = inList && flag == 1
         if (!ok) QLog.i(TAG_AREA, "复核：服务在列表=$inList  开关=$flag")
         return ok

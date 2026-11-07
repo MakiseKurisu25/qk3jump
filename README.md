@@ -541,6 +541,15 @@ adb -s <你的设备序列号> shell "pm grant com.local.qk3jump android.permiss
 
 不给也能用，只是每次划掉卡片都得手动进设置重开一次。
 
+> **写回时会先查重。** 系统里同一条服务有两种等价的写法——`com.local.qk3jump/.ScanTapService`（简写）和 `com.local.qk3jump/com.local.qk3jump.ScanTapService`（全写）。早期版本只做字符串拼接、不比较，于是在「简写已在列表里」的情况下把全写又追加了一遍，同一条服务在系统设置里出现两次：
+>
+> ```
+> [A11y]   原有服务列表=com.local.qk3jump/.ScanTapService
+> [A11y]   写回后=com.local.qk3jump/.ScanTapService:com.local.qk3jump/com.local.qk3jump.ScanTapService
+> ```
+>
+> 现在 `normalizeEntry()` 会把两边都规整成 `包名/完整类名` 再比，已在列表里就只补开关、不重复追加。
+
 ## 11. 界面
 
 三屏，深色底 + 一层玻璃卡片：
