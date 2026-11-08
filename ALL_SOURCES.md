@@ -12,10 +12,10 @@
 | 6 | `app/src/main/AndroidManifest.xml` | 112 |
 | 7 | `app/src/main/java/com/local/qk3jump/QLog.kt` | 39 |
 | 8 | `app/src/main/java/com/local/qk3jump/Prefs.kt` | 99 |
-| 9 | `app/src/main/java/com/local/qk3jump/Qk.kt` | 154 |
+| 9 | `app/src/main/java/com/local/qk3jump/Qk.kt` | 175 |
 | 10 | `app/src/main/java/com/local/qk3jump/Matcher.kt` | 88 |
 | 11 | `app/src/main/java/com/local/qk3jump/JumpWindow.kt` | 117 |
-| 12 | `app/src/main/java/com/local/qk3jump/ScanTapService.kt` | 896 |
+| 12 | `app/src/main/java/com/local/qk3jump/ScanTapService.kt` | 986 |
 | 13 | `app/src/main/java/com/local/qk3jump/A11yGuard.kt` | 211 |
 | 14 | `app/src/main/java/com/local/qk3jump/TargetStore.kt` | 109 |
 | 15 | `app/src/main/java/com/local/qk3jump/JumpActivity.kt` | 354 |
@@ -67,8 +67,6 @@ rootProject.name = "Qk3Jump"
 include(":app")
 ```
 
----
-
 ## 2. `build.gradle.kts`（4 行）
 
 ```kotlin
@@ -77,8 +75,6 @@ plugins {
     id("org.jetbrains.kotlin.android") version "1.9.24" apply false
 }
 ```
-
----
 
 ## 3. `gradle.properties`（6 行）
 
@@ -90,8 +86,6 @@ android.useAndroidX=true
 android.nonTransitiveRClass=true
 android.defaults.buildfeatures.buildconfig=false
 ```
-
----
 
 ## 4. `app/build.gradle.kts`（49 行）
 
@@ -147,15 +141,11 @@ dependencies {
 }
 ```
 
----
-
 ## 5. `app/proguard-rules.pro`（1 行）
 
-```text
+```proguard
 -keepattributes SourceFile,LineNumberTable
 ```
-
----
 
 ## 6. `app/src/main/AndroidManifest.xml`（112 行）
 
@@ -274,8 +264,6 @@ dependencies {
 </manifest>
 ```
 
----
-
 ## 7. `app/src/main/java/com/local/qk3jump/QLog.kt`（39 行）
 
 ```kotlin
@@ -319,8 +307,6 @@ object QLog {
     }
 }
 ```
-
----
 
 ## 8. `app/src/main/java/com/local/qk3jump/Prefs.kt`（99 行）
 
@@ -426,9 +412,7 @@ object Prefs {
 }
 ```
 
----
-
-## 9. `app/src/main/java/com/local/qk3jump/Qk.kt`（154 行）
+## 9. `app/src/main/java/com/local/qk3jump/Qk.kt`（175 行）
 
 ```kotlin
 package com.local.qk3jump
@@ -472,6 +456,27 @@ object Qk {
 
     /** 设备确认页（AfterPayUseAct）里的机器名。到了这一页就算成功。 */
     const val ID_MACHINE_NAME = "com.qiekj.user:id/tv_machine_name"
+
+    /**
+     * 设备确认页上「选择支付方式」下面那排可选项（rv_pay_mode 里的 RecyclerView）。
+     * 每一项的标题都是 [ID_PAY_NAME]。
+     */
+    const val ID_PAY_NAME = "com.qiekj.user:id/tvPayName"
+
+    /**
+     * 我们希望在确认页上**选中**的支付方式。
+     *
+     * 为什么必须主动选：实测同一台手机、同一台饮水机，不同设备（不同商户）的
+     * 默认支付方式不一样。某台热水机默认是「云闪付免密支付」，而这台手机只装了
+     * 云闪付的 SE 组件（com.unionpay.tsmservice.mi），没有云闪付 App 本体，
+     * 于是点「立即使用」只会弹一个 Toast「请先下载安装云闪付App」，页面纹丝不动。
+     * 而 801 默认就是「支付宝支付」，所以一直没暴露这个问题。
+     *
+     * 结论：不能依赖默认值，也不能指望胖乖记住上次的选择（实测重进确认页
+     * 又变回云闪付）。凡是看到有「支付宝支付」这一项、且它没被选中，就先点它，
+     * 点完下一轮再点「立即使用」。
+     */
+    const val TEXT_PAY_ALIPAY = "支付宝支付"
 
     /** 设备列表页右下角悬浮广告的关闭按钮。点它只关广告，不改变页面。 */
     const val ID_FLOAT_AD_CLOSE = "com.qiekj.user:id/channel_banner_close_iv"
@@ -587,8 +592,6 @@ object Qk {
 }
 ```
 
----
-
 ## 10. `app/src/main/java/com/local/qk3jump/Matcher.kt`（88 行）
 
 ```kotlin
@@ -681,8 +684,6 @@ object Matcher {
         "目标「$target」→规整「${normalize(target)}」  页面「$shown」→规整「${normalize(shown)}」"
 }
 ```
-
----
 
 ## 11. `app/src/main/java/com/local/qk3jump/JumpWindow.kt`（117 行）
 
@@ -806,9 +807,7 @@ object JumpWindow {
 }
 ```
 
----
-
-## 12. `app/src/main/java/com/local/qk3jump/ScanTapService.kt`（896 行）
+## 12. `app/src/main/java/com/local/qk3jump/ScanTapService.kt`（986 行）
 
 ```kotlin
 package com.local.qk3jump
@@ -882,6 +881,14 @@ class ScanTapService : AccessibilityService() {
     /** 确认页按钮同理：点了没跳也要重试，否则同样会干等到超时。 */
     @Volatile private var confirmClickedAt = 0L
     @Volatile private var confirmAttempts = 0
+
+    /**
+     * 确认页上「把支付方式改成支付宝」这件事做没做过。
+     *
+     * 单独一个标记，不复用 STAGE_CONFIRM_USE：改支付方式可能发生多次
+     * （万一用户中途手动改回去了），而「点立即使用」每次待命只该发生一次。
+     */
+    @Volatile private var payPickedAt = 0L
 
     @Volatile private var confirmSeenToken = 0L
 
@@ -975,6 +982,18 @@ class ScanTapService : AccessibilityService() {
         /** 确认页底部那个「领优惠券使用 / 立即使用」按钮。 */
         var confirmUseButton: AccessibilityNodeInfo? = null
 
+        /**
+         * 确认页「选择支付方式」里那一行「支付宝支付」。
+         *
+         * 有它就先点它 —— 不同设备（不同商户）的默认支付方式不一样，某台热水机默认
+         * 「云闪付免密支付」，而这台手机没装云闪付 App，点「立即使用」只会弹
+         * 「请先下载安装云闪付App」然后原地不动。801 默认就是支付宝，所以从没暴露。
+         *
+         * 没读到「已选中」这个状态也照点：点一个已经选中的单选行是无害的，
+         * 而读不到状态就跳过则会重新掉进 热水机那个坑里。
+         */
+        var payAlipayRow: AccessibilityNodeInfo? = null
+
         /** 设备列表右下角悬浮广告的关闭按钮（有就点掉，没有就算了）。 */
         var floatAdClose: AccessibilityNodeInfo? = null
         var nodeCount = 0
@@ -999,6 +1018,7 @@ class ScanTapService : AccessibilityService() {
             declineAttempts = 0
             confirmClickedAt = 0L
             confirmAttempts = 0
+            payPickedAt = 0L
             // 新一轮待命要把「这句话已经打过」的记录也清掉，
             // 否则第二次使用时整条链路会一句日志都不出，看起来像没跑。
             noted.clear()
@@ -1237,6 +1257,44 @@ class ScanTapService : AccessibilityService() {
             Prefs.setLastResult(this, "已到设备确认页$suffix")
             JumpWindow.disarm("已到设备确认页")
             stopPolling()
+            return
+        }
+
+        // ── 「立即使用」点了没反应时，才去改支付方式 ──
+        //
+        // 为什么不是一上来就改：实测点「支付宝支付」那一行**即使它已经选中**，
+        // 也会弹出「你有3天免费会员待领取 / [放弃优惠] [立即领取]」的营销框。
+        // 801 默认就是支付宝，本来一次就能过，先点那一行反而凭空多出一个
+        // 需要处理的会员弹框（点错就是自动续费）。所以只在「已经点过使用按钮、
+        // 等够了、页面还赖在确认页」这个条件下才动支付方式 —— 那正是热水机的情形。
+        //
+        // 热水机的原因：它的默认支付方式是被选中的「云闪付免密支付」，而这台手机
+        // 只有云闪付的 SE 组件、没有 App 本体，点「立即使用」只弹一个 Toast
+        // 「请先下载安装云闪付App」，页面纹丝不动，看起来就像卡死。
+        // 也不能指望胖乖记住选择：实测重新进入确认页又变回云闪付。
+        val payRow = scan.payAlipayRow
+        val useClickStuck = confirmClickedAt > 0L &&
+            SystemClock.elapsedRealtime() - confirmClickedAt >= RETRY_AFTER_MS
+        if (payRow != null && payPickedAt == 0L && useClickStuck) {
+            if (Prefs.dryRun(this)) {
+                note("调试模式：本应在点不动时把支付方式改成「${Qk.TEXT_PAY_ALIPAY}」，未动手")
+                JumpWindow.noteStep("调试：确认页，未改支付方式")
+                return
+            }
+            QLog.i("Tap", "点「立即使用」没反应，怀疑支付方式不对，先拨到「${Qk.TEXT_PAY_ALIPAY}」")
+            val picked = clickNode(payRow)
+            QLog.i("Tap", "点「${Qk.TEXT_PAY_ALIPAY}」那一行结果=$picked")
+            if (picked) {
+                payPickedAt = SystemClock.elapsedRealtime()
+                // 改了支付方式，之前那次失败不算数，重给 3 次机会。
+                JumpWindow.resetStage(STAGE_CONFIRM_USE)
+                confirmClickedAt = 0L
+                confirmAttempts = 0
+                note("已把支付方式改成「${Qk.TEXT_PAY_ALIPAY}」，重新点使用按钮")
+                JumpWindow.noteStep("确认页：已改支付方式")
+            } else {
+                QLog.w("Tap", "没点中支付方式那一行，下一轮再试")
+            }
             return
         }
 
@@ -1527,6 +1585,7 @@ class ScanTapService : AccessibilityService() {
 
         if (result.onConfirm && !result.onMemberOffer && !result.onUnlocked) {
             result.confirmUseButton = findByViewId(root, Qk.ID_USE_TEXT)
+            result.payAlipayRow = findPayRow(root, Qk.TEXT_PAY_ALIPAY)
         }
         result.floatAdClose = adCloseNodes.firstOrNull { it.isEnabled }
 
@@ -1586,6 +1645,36 @@ class ScanTapService : AccessibilityService() {
             val n = queue.removeFirst()
             visited++
             if (n.text?.toString() == text && n.isEnabled) return n
+            for (i in 0 until n.childCount) {
+                n.getChild(i)?.let { queue.add(it) }
+            }
+        }
+        return null
+    }
+
+    /**
+     * 在确认页的「选择支付方式」里找指定的那一行（例如「支付宝支付」）。
+     *
+     * 按 resource-id + 文本全等双重匹配，不做模糊包含：
+     * 这一排里同时可能有「支付宝支付」「云闪付免密支付」「免费饮水」，
+     * 用包含匹配很容易把「云闪付免密支付」也当成目标。
+     *
+     * 找不到就返回 null —— 有些设备/商户只有一种支付方式，没有可选项，
+     * 这时不该挡路，直接往下走点「立即使用」。
+     */
+    private fun findPayRow(root: AccessibilityNodeInfo, payName: String): AccessibilityNodeInfo? {
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        var visited = 0
+        while (queue.isNotEmpty() && visited < MAX_NODES) {
+            val n = queue.removeFirst()
+            visited++
+            if (n.viewIdResourceName == Qk.ID_PAY_NAME &&
+                n.text?.toString() == payName &&
+                n.isEnabled
+            ) {
+                return n
+            }
             for (i in 0 until n.childCount) {
                 n.getChild(i)?.let { queue.add(it) }
             }
@@ -1708,8 +1797,6 @@ class ScanTapService : AccessibilityService() {
     }
 }
 ```
-
----
 
 ## 13. `app/src/main/java/com/local/qk3jump/A11yGuard.kt`（211 行）
 
@@ -1927,8 +2014,6 @@ object A11yGuard {
 }
 ```
 
----
-
 ## 14. `app/src/main/java/com/local/qk3jump/TargetStore.kt`（109 行）
 
 ```kotlin
@@ -2042,8 +2127,6 @@ object TargetStore {
     }
 }
 ```
-
----
 
 ## 15. `app/src/main/java/com/local/qk3jump/JumpActivity.kt`（354 行）
 
@@ -2404,8 +2487,6 @@ class JumpActivity : AppCompatActivity() {
 }
 ```
 
----
-
 ## 16. `app/src/main/java/com/local/qk3jump/SettingsActivity.kt`（217 行）
 
 ```kotlin
@@ -2628,8 +2709,6 @@ class SettingsActivity : AppCompatActivity() {
 }
 ```
 
----
-
 ## 17. `app/src/main/java/com/local/qk3jump/DeviceWidget.kt`（212 行）
 
 ```kotlin
@@ -2847,8 +2926,6 @@ class DeviceWidget : AppWidgetProvider() {
 }
 ```
 
----
-
 ## 18. `app/src/main/res/xml/accessibility_service_config.xml`（23 行）
 
 ```xml
@@ -2877,8 +2954,6 @@ class DeviceWidget : AppWidgetProvider() {
     android:settingsActivity="com.local.qk3jump.SettingsActivity" />
 ```
 
----
-
 ## 19. `app/src/main/res/xml/widget_devices_info.xml`（23 行）
 
 ```xml
@@ -2906,8 +2981,6 @@ class DeviceWidget : AppWidgetProvider() {
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />
 ```
-
----
 
 ## 20. `app/src/main/res/values/strings.xml`（87 行）
 
@@ -3001,8 +3074,6 @@ class DeviceWidget : AppWidgetProvider() {
 </resources>
 ```
 
----
-
 ## 21. `app/src/main/res/values/themes.xml`（13 行）
 
 ```xml
@@ -3020,8 +3091,6 @@ class DeviceWidget : AppWidgetProvider() {
 
 </resources>
 ```
-
----
 
 ## 22. `app/src/main/res/layout/activity_jump.xml`（124 行）
 
@@ -3152,8 +3221,6 @@ class DeviceWidget : AppWidgetProvider() {
 </ScrollView>
 ```
 
----
-
 ## 23. `app/src/main/res/layout/item_target.xml`（47 行）
 
 ```xml
@@ -3205,8 +3272,6 @@ class DeviceWidget : AppWidgetProvider() {
 
 </LinearLayout>
 ```
-
----
 
 ## 24. `app/src/main/res/layout/activity_settings.xml`（265 行）
 
@@ -3478,8 +3543,6 @@ class DeviceWidget : AppWidgetProvider() {
 </ScrollView>
 ```
 
----
-
 ## 25. `app/src/main/res/layout/widget_devices.xml`（122 行）
 
 ```xml
@@ -3607,8 +3670,6 @@ class DeviceWidget : AppWidgetProvider() {
 </LinearLayout>
 ```
 
----
-
 ## 26. `app/src/main/res/drawable/bg_app.xml`（13 行）
 
 ```xml
@@ -3627,8 +3688,6 @@ class DeviceWidget : AppWidgetProvider() {
 </layer-list>
 ```
 
----
-
 ## 27. `app/src/main/res/drawable/bg_glass.xml`（6 行）
 
 ```xml
@@ -3639,8 +3698,6 @@ class DeviceWidget : AppWidgetProvider() {
     <stroke android:width="1dp" android:color="#33FFFFFF" />
 </shape>
 ```
-
----
 
 ## 28. `app/src/main/res/drawable/bg_button.xml`（15 行）
 
@@ -3661,8 +3718,6 @@ class DeviceWidget : AppWidgetProvider() {
     </item>
 </selector>
 ```
-
----
 
 ## 29. `app/src/main/res/drawable/bg_button_outline.xml`（17 行）
 
@@ -3686,8 +3741,6 @@ class DeviceWidget : AppWidgetProvider() {
 </selector>
 ```
 
----
-
 ## 30. `app/src/main/res/drawable/bg_row.xml`（17 行）
 
 ```xml
@@ -3709,8 +3762,6 @@ class DeviceWidget : AppWidgetProvider() {
     </item>
 </selector>
 ```
-
----
 
 ## 31. `app/src/main/res/drawable/bg_widget_devices.xml`（24 行）
 
@@ -3741,8 +3792,6 @@ class DeviceWidget : AppWidgetProvider() {
 </shape>
 ```
 
----
-
 ## 32. `app/src/main/res/drawable/ic_widget_drop.xml`（23 行）
 
 ```xml
@@ -3771,8 +3820,6 @@ class DeviceWidget : AppWidgetProvider() {
 </vector>
 ```
 
----
-
 ## 33. `app/src/main/res/drawable/ic_launcher_background.xml`（10 行）
 
 ```xml
@@ -3787,8 +3834,6 @@ class DeviceWidget : AppWidgetProvider() {
         android:pathData="M0,0h108v108h-108z" />
 </vector>
 ```
-
----
 
 ## 34. `app/src/main/res/drawable/ic_launcher_foreground.xml`（30 行）
 
@@ -3825,11 +3870,9 @@ class DeviceWidget : AppWidgetProvider() {
 </vector>
 ```
 
----
-
 ## 35. `gradlew`（249 行）
 
-```bash
+```
 #!/bin/sh
 
 #
@@ -4081,8 +4124,6 @@ eval "set -- $(
 exec "$JAVACMD" "$@"
 ```
 
----
-
 ## 36. `gradlew.bat`（92 行）
 
 ```bat
@@ -4179,8 +4220,6 @@ if "%OS%"=="Windows_NT" endlocal
 
 :omega
 ```
-
----
 
 ## 37. `gradle/wrapper/gradle-wrapper.properties`（7 行）
 

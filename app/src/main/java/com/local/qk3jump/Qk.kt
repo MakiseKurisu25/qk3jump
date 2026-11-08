@@ -40,6 +40,27 @@ object Qk {
     /** 设备确认页（AfterPayUseAct）里的机器名。到了这一页就算成功。 */
     const val ID_MACHINE_NAME = "com.qiekj.user:id/tv_machine_name"
 
+    /**
+     * 设备确认页上「选择支付方式」下面那排可选项（rv_pay_mode 里的 RecyclerView）。
+     * 每一项的标题都是 [ID_PAY_NAME]。
+     */
+    const val ID_PAY_NAME = "com.qiekj.user:id/tvPayName"
+
+    /**
+     * 我们希望在确认页上**选中**的支付方式。
+     *
+     * 为什么必须主动选：实测同一台手机、同一台饮水机，不同设备（不同商户）的
+     * 默认支付方式不一样。某台热水机默认是「云闪付免密支付」，而这台手机只装了
+     * 云闪付的 SE 组件（com.unionpay.tsmservice.mi），没有云闪付 App 本体，
+     * 于是点「立即使用」只会弹一个 Toast「请先下载安装云闪付App」，页面纹丝不动。
+     * 而 801 默认就是「支付宝支付」，所以一直没暴露这个问题。
+     *
+     * 结论：不能依赖默认值，也不能指望胖乖记住上次的选择（实测重进确认页
+     * 又变回云闪付）。凡是看到有「支付宝支付」这一项、且它没被选中，就先点它，
+     * 点完下一轮再点「立即使用」。
+     */
+    const val TEXT_PAY_ALIPAY = "支付宝支付"
+
     /** 设备列表页右下角悬浮广告的关闭按钮。点它只关广告，不改变页面。 */
     const val ID_FLOAT_AD_CLOSE = "com.qiekj.user:id/channel_banner_close_iv"
 

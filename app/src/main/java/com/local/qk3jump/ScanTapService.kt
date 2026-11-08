@@ -70,6 +70,14 @@ class ScanTapService : AccessibilityService() {
     @Volatile private var confirmClickedAt = 0L
     @Volatile private var confirmAttempts = 0
 
+    /**
+     * 确认页上「把支付方式改成支付宝」这件事做没做过。
+     *
+     * 单独一个标记，不复用 STAGE_CONFIRM_USE：改支付方式可能发生多次
+     * （万一用户中途手动改回去了），而「点立即使用」每次待命只该发生一次。
+     */
+    @Volatile private var payPickedAt = 0L
+
     @Volatile private var confirmSeenToken = 0L
 
     private val pollRunnable = object : Runnable {
@@ -162,6 +170,18 @@ class ScanTapService : AccessibilityService() {
         /** 确认页底部那个「领优惠券使用 / 立即使用」按钮。 */
         var confirmUseButton: AccessibilityNodeInfo? = null
 
+        /**
+         * 确认页「选择支付方式」里那一行「支付宝支付」。
+         *
+         * 有它就先点它 —— 不同设备（不同商户）的默认支付方式不一样，某台热水机默认
+         * 「云闪付免密支付」，而这台手机没装云闪付 App，点「立即使用」只会弹
+         * 「请先下载安装云闪付App」然后原地不动。801 默认就是支付宝，所以从没暴露。
+         *
+         * 没读到「已选中」这个状态也照点：点一个已经选中的单选行是无害的，
+         * 而读不到状态就跳过则会重新掉进 热水机那个坑里。
+         */
+        var payAlipayRow: AccessibilityNodeInfo? = null
+
         /** 设备列表右下角悬浮广告的关闭按钮（有就点掉，没有就算了）。 */
         var floatAdClose: AccessibilityNodeInfo? = null
         var nodeCount = 0
@@ -186,6 +206,7 @@ class ScanTapService : AccessibilityService() {
             declineAttempts = 0
             confirmClickedAt = 0L
             confirmAttempts = 0
+            payPickedAt = 0L
             // 新一轮待命要把「这句话已经打过」的记录也清掉，
             // 否则第二次使用时整条链路会一句日志都不出，看起来像没跑。
             noted.clear()
@@ -424,6 +445,44 @@ class ScanTapService : AccessibilityService() {
             Prefs.setLastResult(this, "已到设备确认页$suffix")
             JumpWindow.disarm("已到设备确认页")
             stopPolling()
+            return
+        }
+
+        // ── 「立即使用」点了没反应时，才去改支付方式 ──
+        //
+        // 为什么不是一上来就改：实测点「支付宝支付」那一行**即使它已经选中**，
+        // 也会弹出「你有3天免费会员待领取 / [放弃优惠] [立即领取]」的营销框。
+        // 801 默认就是支付宝，本来一次就能过，先点那一行反而凭空多出一个
+        // 需要处理的会员弹框（点错就是自动续费）。所以只在「已经点过使用按钮、
+        // 等够了、页面还赖在确认页」这个条件下才动支付方式 —— 那正是热水机的情形。
+        //
+        // 热水机的原因：它的默认支付方式是被选中的「云闪付免密支付」，而这台手机
+        // 只有云闪付的 SE 组件、没有 App 本体，点「立即使用」只弹一个 Toast
+        // 「请先下载安装云闪付App」，页面纹丝不动，看起来就像卡死。
+        // 也不能指望胖乖记住选择：实测重新进入确认页又变回云闪付。
+        val payRow = scan.payAlipayRow
+        val useClickStuck = confirmClickedAt > 0L &&
+            SystemClock.elapsedRealtime() - confirmClickedAt >= RETRY_AFTER_MS
+        if (payRow != null && payPickedAt == 0L && useClickStuck) {
+            if (Prefs.dryRun(this)) {
+                note("调试模式：本应在点不动时把支付方式改成「${Qk.TEXT_PAY_ALIPAY}」，未动手")
+                JumpWindow.noteStep("调试：确认页，未改支付方式")
+                return
+            }
+            QLog.i("Tap", "点「立即使用」没反应，怀疑支付方式不对，先拨到「${Qk.TEXT_PAY_ALIPAY}」")
+            val picked = clickNode(payRow)
+            QLog.i("Tap", "点「${Qk.TEXT_PAY_ALIPAY}」那一行结果=$picked")
+            if (picked) {
+                payPickedAt = SystemClock.elapsedRealtime()
+                // 改了支付方式，之前那次失败不算数，重给 3 次机会。
+                JumpWindow.resetStage(STAGE_CONFIRM_USE)
+                confirmClickedAt = 0L
+                confirmAttempts = 0
+                note("已把支付方式改成「${Qk.TEXT_PAY_ALIPAY}」，重新点使用按钮")
+                JumpWindow.noteStep("确认页：已改支付方式")
+            } else {
+                QLog.w("Tap", "没点中支付方式那一行，下一轮再试")
+            }
             return
         }
 
@@ -714,6 +773,7 @@ class ScanTapService : AccessibilityService() {
 
         if (result.onConfirm && !result.onMemberOffer && !result.onUnlocked) {
             result.confirmUseButton = findByViewId(root, Qk.ID_USE_TEXT)
+            result.payAlipayRow = findPayRow(root, Qk.TEXT_PAY_ALIPAY)
         }
         result.floatAdClose = adCloseNodes.firstOrNull { it.isEnabled }
 
@@ -773,6 +833,36 @@ class ScanTapService : AccessibilityService() {
             val n = queue.removeFirst()
             visited++
             if (n.text?.toString() == text && n.isEnabled) return n
+            for (i in 0 until n.childCount) {
+                n.getChild(i)?.let { queue.add(it) }
+            }
+        }
+        return null
+    }
+
+    /**
+     * 在确认页的「选择支付方式」里找指定的那一行（例如「支付宝支付」）。
+     *
+     * 按 resource-id + 文本全等双重匹配，不做模糊包含：
+     * 这一排里同时可能有「支付宝支付」「云闪付免密支付」「免费饮水」，
+     * 用包含匹配很容易把「云闪付免密支付」也当成目标。
+     *
+     * 找不到就返回 null —— 有些设备/商户只有一种支付方式，没有可选项，
+     * 这时不该挡路，直接往下走点「立即使用」。
+     */
+    private fun findPayRow(root: AccessibilityNodeInfo, payName: String): AccessibilityNodeInfo? {
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        var visited = 0
+        while (queue.isNotEmpty() && visited < MAX_NODES) {
+            val n = queue.removeFirst()
+            visited++
+            if (n.viewIdResourceName == Qk.ID_PAY_NAME &&
+                n.text?.toString() == payName &&
+                n.isEnabled
+            ) {
+                return n
+            }
             for (i in 0 until n.childCount) {
                 n.getChild(i)?.let { queue.add(it) }
             }
